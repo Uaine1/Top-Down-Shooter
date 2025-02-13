@@ -22,7 +22,6 @@ class Game():
         self.setup()
 
         #Sprites
-        self.player = Player((500,300), self.all_sprites, self.collision_sprites)
 
 
     def setup(self):
@@ -34,8 +33,12 @@ class Game():
         for obj in map.get_layer_by_name("Objects"):
             CollisionSprite((obj.x, obj.y), obj.image, (self.all_sprites, self.collision_sprites))
 
-        for col in map.get_layer_by_name("Collisions"):
-            CollisionSprite((col.x, col.y), pygame.Surface((col.width, col.height)), self.collision_sprites)
+        for obj in map.get_layer_by_name("Collisions"):
+            CollisionSprite((obj.x, obj.y), pygame.Surface((obj.width, obj.height)), self.collision_sprites)
+
+        for obj in map.get_layer_by_name("Entities"):
+            if obj.name == "Player":
+                self.player = Player((obj.x, obj.y), self.all_sprites, self.collision_sprites)
 
 
     def run(self):
