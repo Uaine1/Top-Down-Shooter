@@ -26,10 +26,21 @@ class Game():
         self.shoot_time = 0
         self.shoot_cd = 100
 
-        # Enemy timer
+        # Enemy stimer
         self.enemy_event = pygame.event.custom_type()
-        pygame.time.set_timer(self.enemy_event, 200)
+        pygame.time.set_timer(self.enemy_event, 100)
         self.spawn_pos = []
+
+         # Game sfx
+        self.game_music = pygame.mixer.Sound(join("audio", "music.wav"))
+        self.game_music.set_volume(0.1)
+        self.game_music.play(loops= -1)
+
+        self.gun_sfx = pygame.mixer.Sound(join("audio", "shoot.wav"))
+        self.gun_sfx.set_volume(0.1)
+
+        self.impact_sfx = pygame.mixer.Sound(join("audio", "impact.ogg"))
+        self.impact_sfx.set_volume(0.1)
 
         #Setup II
         self.load_images()
@@ -77,6 +88,7 @@ class Game():
             Bullet(self.bullet_surf, pos , self.gun.player_direction, (self.all_sprites, self.bullet_sprites))
             self.can_shoot = False
             self.shoot_time = pygame.time.get_ticks()
+            self.gun_sfx.play()
 
         self.gun_timer()
 
@@ -88,15 +100,26 @@ class Game():
                 self.can_shoot = True      
 
 
+    def obj_collision(self):
+        # Bullet - Enemy Collision
+        if self.bullet_sprites:
+            for bullet in self.bullet_sprites:
+                collision_sprites = pygame.sprite.spritecollide(bullet, self.enemy_sprites, False, pygame.sprite.collide_mask)
+                if collision_sprites: 
+                    for sprite in collision_sprites:
+                        self.impact_sfx.play()
+                        sprite.destroy()
+                    bullet.kill()
+
+        # Player - Enemy collision
+        if pygame.sprite.spritecollide(self.player, self.enemy_sprites, False, pygame.sprite.collide_mask):
+            self.running = False
+
+
     def run(self):
         while self.running:
             # Dt
             dt = self.clock.tick() / 1000
-
-            # Game sfx
-            self.game_music = pygame.mixer.Sound(join("audio", "music.wav"))
-            self.game_music.set_volume(0.1)
-            self.game_music.play(loops= -1) 
 
             #Event loop
             for event in pygame.event.get():
@@ -109,6 +132,7 @@ class Game():
             self.gun_timer()
             self.input()
             self.all_sprites.update(dt)
+            self.obj_collision()
 
             #Draw the game
             self.screen_display.fill("#2f3036")
